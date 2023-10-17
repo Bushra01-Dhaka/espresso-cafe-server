@@ -27,12 +27,30 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+
+    // 2. Akon amar data gula ke DB e store korbo
+    const coffeeCollection = client.db("coffeesDB").collection("coffees");
+
+
+    //1. here I used POST req as I am getting data from client site
+    //aita post req diye data newar jonno ready .. now client site theke data pathao server site e fetch() kore
+    app.post('/coffees', async(req, res) => {
+        const newCoffee = req.body;
+        console.log(newCoffee);
+        // 3. 
+        const result = await coffeeCollection.insertOne(newCoffee);
+        res.send(result);
+
+    })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
