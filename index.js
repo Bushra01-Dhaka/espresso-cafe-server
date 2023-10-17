@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -32,6 +32,13 @@ async function run() {
     // 2. Akon amar data gula ke DB e store korbo
     const coffeeCollection = client.db("coffeesDB").collection("coffees");
 
+    // 3. akon card e recieve kora data gula dekhabo get r maddome
+    app.get('/coffees', async(req, res) => {
+      const cursor = coffeeCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+
+    })
 
     //1. here I used POST req as I am getting data from client site
     //aita post req diye data newar jonno ready .. now client site theke data pathao server site e fetch() kore
@@ -42,6 +49,43 @@ async function run() {
         const result = await coffeeCollection.insertOne(newCoffee);
         res.send(result);
 
+    })
+
+    //4. delete an card
+    app.delete('/coffees/:id', async(req, res) => {
+       const id = req.params.id;
+       const query = {_id: new ObjectId(id)};
+       const result = await coffeeCollection.deleteOne(query);
+       res.send(result);
+    })
+
+    // 5. update er per card data nilam 
+    app.get('/coffees/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await coffeeCollection.findOne(query);
+      res.send(result);
+    })
+
+    //6. update korbo
+    app.put('/coffees/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const options = { upsert: true };
+      const updatedCoffee = req.body;
+      const coffee = {
+        $set: {
+          name : updatedCoffee.name,
+          quantity : updatedCoffee.quantity,
+          supplier : updatedCoffee.supplier,
+          taste : updatedCoffee.taste,
+          category : updatedCoffee.category,
+          price : updatedCoffee.price,
+          photo : updatedCoffee.photo,
+        },
+      };
+      const result = await coffeeCollection.updateOne(filter, coffee, options);
+      res.send(result);
     })
 
 
